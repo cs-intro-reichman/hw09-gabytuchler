@@ -95,7 +95,7 @@ public class LanguageModel {
     }
     String generatedText = initialText;
         while (generatedText.length() < textLength) {
-        String currentWindow = generatedText.substring(generatedText.length() - textLength);
+        String currentWindow = generatedText.substring(generatedText.length() - windowLength);
         List probs = CharDataMap.get(currentWindow);
                 if (probs == null) {
             break;
