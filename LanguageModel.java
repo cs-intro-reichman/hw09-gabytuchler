@@ -21,32 +21,26 @@ public class LanguageModel {
 
     /** Builds a language model from the text in the given file (circular training). */
     public void train(String fileName) {
-        In in = new In(fileName);
-        String corpus = in.readAll();
-        int n = corpus.length();
+    In in = new In(fileName);
+    String corpus = in.readAll();
 
-        for (int i = 0; i < n; i++) {
+    int n = corpus.length();
 
-            // build circular window
-            String window;
-            if (i + windowLength <= n) {
-                window = corpus.substring(i, i + windowLength);
-            } else {
-                window = corpus.substring(i)
-                       + corpus.substring(0, (i + windowLength) % n);
-            }
+    corpus = corpus + corpus.substring(0, windowLength);
 
-            // circular next character
-            char nextChar = corpus.charAt((i + windowLength) % n);
+    for (int i = 0; i < n; i++) {
+        String window = corpus.substring(i, i + windowLength);
+        char nextChar = corpus.charAt(i + windowLength);
 
-            List probs = CharDataMap.get(window);
-            if (probs == null) {
-                probs = new List();
-                CharDataMap.put(window, probs);
-            }
-            probs.update(nextChar);
+        List probs = CharDataMap.get(window);
+        if (probs == null) {
+            probs = new List();
+            CharDataMap.put(window, probs);
         }
+        probs.update(nextChar);
     }
+}
+
 
     /** Computes probabilities (p and cp) */
     public void calculateProbabilities(List probs) {
