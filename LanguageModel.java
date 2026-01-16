@@ -35,20 +35,24 @@ public class LanguageModel {
 	public void train(String fileName) {
     In in = new In(fileName);
     String corpus = in.readAll();
-    for (int i = 0; i <= corpus.length() - windowLength - 1; i++) {
-        // גזירת החלון (למשל "he")
+    // שימי לב לסימן קטן-שווה (<=)
+    for (int i = 0; i <= corpus.length() - windowLength; i++) {
         String window = corpus.substring(i, i + windowLength);
-        // האות שבאה מיד אחריו (למשל 'l')
+        
+        // הגנה: אם אנחנו בסוף הטקסט ואין אות אחרי החלון, עוצרים
+        if (i + windowLength >= corpus.length()) {
+            break;
+        }
+        
         char nextChar = corpus.charAt(i + windowLength);
-
-        // שלב 3: בדיקה במפה
         List probs = CharDataMap.get(window);
         if (probs == null) {
             probs = new List();
             CharDataMap.put(window, probs);
         }
-                probs.update(nextChar);
-    }	}
+        probs.update(nextChar);
+    }
+}
 
     // Computes and sets the probabilities (p and cp fields) of all the
 	// characters in the given list. */
@@ -90,22 +94,29 @@ public class LanguageModel {
 	 * @return the generated text
 	 */
 	public String generate(String initialText, int textLength) {
+    // אם הטקסט הראשוני כבר ארוך מספיק או שהחלון לא חוקי
     if (initialText.length() < windowLength) {
         return initialText;
     }
+
     String generatedText = initialText;
-        while (generatedText.length() < textLength) {
+
+    // הלולאה צריכה להמשיך עד שהאורך הכולל שווה ל-textLength
+    while (generatedText.length() < textLength) {
         String currentWindow = generatedText.substring(generatedText.length() - windowLength);
         List probs = CharDataMap.get(currentWindow);
-                if (probs == null) {
-            break;
+        
+        if (probs == null) {
+            break; // אם אין מידע על החלון, אין ברירה אלא לעצור
         }
+        
+        // חובה לחשב הסתברויות לפני ההגרלה
         calculateProbabilities(probs);
         char nextChar = getRandomChar(probs);
-        generatedText = generatedText + nextChar;
+        generatedText += nextChar;
     }
     
-    return generatedText.toString();
+    return generatedText;
 }
 	
 
